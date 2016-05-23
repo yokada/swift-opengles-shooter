@@ -21,17 +21,8 @@ var uniforms = [GLint](count: 2, repeatedValue: 0)
 class GameViewController: GLKViewController {
     
     var program: GLuint = 0                            // program means Shader Program to apply shader
-    
-    var modelViewProjectionMatrix:GLKMatrix4 = GLKMatrix4Identity
-    var normalMatrix: GLKMatrix3 = GLKMatrix3Identity
-    var rotation: Float = 0.0
-    
-    var vertexArray: GLuint = 0
-    var vertexBuffer: GLuint = 0
-    
     var context: EAGLContext? = nil
-    var effect: GLKBaseEffect? = nil
-    
+
     deinit {
         self.tearDownGL()
         
@@ -73,37 +64,15 @@ class GameViewController: GLKViewController {
     
     func setupGL() {
         EAGLContext.setCurrentContext(self.context)
-        
+                
         self.loadShaders()
-        
-        self.effect = GLKBaseEffect()
-        self.effect!.light0.enabled = GLboolean(GL_TRUE)
-        self.effect!.light0.diffuseColor = GLKVector4Make(1.0, 0.4, 0.4, 1.0)
-        
-        glEnable(GLenum(GL_DEPTH_TEST))              // enabled Z buffer in order to hidden suface removal
-        
-        glGenVertexArraysOES(1, &vertexArray)        //
-        glBindVertexArrayOES(vertexArray)            //
-        
-        glGenBuffers(1, &vertexBuffer)               //
-        glBindBuffer(GLenum(GL_ARRAY_BUFFER), vertexBuffer)  //
-        glBufferData(GLenum(GL_ARRAY_BUFFER), GLsizeiptr(sizeof(GLfloat) * gCubeVertexData.count), &gCubeVertexData, GLenum(GL_STATIC_DRAW))
-        
-        glEnableVertexAttribArray(GLuint(GLKVertexAttrib.Position.rawValue))
-        glVertexAttribPointer(GLuint(GLKVertexAttrib.Position.rawValue), 3, GLenum(GL_FLOAT), GLboolean(GL_FALSE), 24, BUFFER_OFFSET(0))
-        glEnableVertexAttribArray(GLuint(GLKVertexAttrib.Normal.rawValue))
-        glVertexAttribPointer(GLuint(GLKVertexAttrib.Normal.rawValue), 3, GLenum(GL_FLOAT), GLboolean(GL_FALSE), 24, BUFFER_OFFSET(12))
-        
-        glBindVertexArrayOES(0)
+
+        gContext = self.context
+        gProgram = self.program
     }
     
     func tearDownGL() {
         EAGLContext.setCurrentContext(self.context)
-        
-        glDeleteBuffers(1, &vertexBuffer)
-        glDeleteVertexArraysOES(1, &vertexArray)
-        
-        self.effect = nil
         
         if program != 0 {
             glDeleteProgram(program)
@@ -112,80 +81,14 @@ class GameViewController: GLKViewController {
     }
     
     // MARK: - GLKView and GLKViewController delegate methods
-    
-    func update() {
 
-        let aspect = fabsf(Float(self.view.bounds.size.width / self.view.bounds.size.height))                 //
-        let projectionMatrix = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(65.0), aspect, 0.1, 100.0)
-        
-        self.effect?.transform.projectionMatrix = projectionMatrix
-        
-        var baseModelViewMatrix = GLKMatrix4MakeTranslation(0.0, 0.0, -4.0)
-        baseModelViewMatrix = GLKMatrix4Rotate(baseModelViewMatrix, rotation, 0.0, 1.0, 0.0)
-        
-        // Compute the model view matrix for the object rendered with GLKit
-        var modelViewMatrix = GLKMatrix4MakeTranslation(0.0, 0.0, 0.0)
-        modelViewMatrix = GLKMatrix4Rotate(modelViewMatrix, rotation, 1.0, 1.0, 1.0)
-        modelViewMatrix = GLKMatrix4Multiply(baseModelViewMatrix, modelViewMatrix)
-        
-        self.effect?.transform.modelviewMatrix = modelViewMatrix
-        
-        // Compute the model view matrix for the object rendered with ES2
-        //modelViewMatrix = GLKMatrix4MakeTranslation(0.0, 0.0, 1.5)
-        //modelViewMatrix = GLKMatrix4Rotate(modelViewMatrix, rotation, 1.0, 1.0, 1.0)
-        //modelViewMatrix = GLKMatrix4Multiply(baseModelViewMatrix, modelViewMatrix)
- 
-        normalMatrix = GLKMatrix3InvertAndTranspose(GLKMatrix4GetMatrix3(modelViewMatrix), nil)
-        
-        modelViewProjectionMatrix = GLKMatrix4Multiply(projectionMatrix, modelViewMatrix)
-        
-        rotation += Float(self.timeSinceLastUpdate * 0.5)
-    }
-    
     override func glkView(view: GLKView, drawInRect rect: CGRect) {
         glClearColor(0.65, 0.65, 0.65, 1.0)  // background color
         //glClearColor(0, 0, 0, 1.0) // black color background
-        glClear(GLbitfield(GL_COLOR_BUFFER_BIT) | GLbitfield(GL_DEPTH_BUFFER_BIT))
+        glClear(GLbitfield(GL_COLOR_BUFFER_BIT))
         
-        glBindVertexArrayOES(vertexArray)
-        
-        // Render the object with GLKit
-        self.effect?.prepareToDraw()
-        
-        glDrawArrays(GLenum(GL_TRIANGLES) , 0, 36)
-        //glDrawArrays(GLenum(GL_TRIANGLES), 0, 4)
-        
-        // Render the object again with ES2
-        glUseProgram(program)
-        
-        withUnsafePointer(&modelViewProjectionMatrix, {
-            glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, UnsafePointer($0))
-        })
-        
-        withUnsafePointer(&normalMatrix, {
-            glUniformMatrix3fv(uniforms[UNIFORM_NORMAL_MATRIX], 1, 0, UnsafePointer($0))
-        })
-        
-        glDrawArrays(GLenum(GL_TRIANGLES), 0, 36)   // glVertex*() calls is 36 times as a Cube. 36 means gCubeVertexData element count
-        //glDrawArrays(GLenum(GL_TRIANGLES), 0, 4)
-
-        /*
-        // projection
-        let aspect = fabsf(Float(self.view.bounds.size.width / self.view.bounds.size.height))                 //
-        let projectionMatrix = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(65.0), aspect, 0.1, 100.0)
-        self.effect?.transform.projectionMatrix = projectionMatrix
-        
-        // baseModelView
-        var baseModelViewMatrix = GLKMatrix4MakeTranslation(0.0, 0.0, -4.0)
-        baseModelViewMatrix = GLKMatrix4Rotate(baseModelViewMatrix, rotation, 0.0, 1.0, 0.0)
-        self.effect?.transform.modelviewMatrix = baseModelViewMatrix
-
-        // modelView
-        var modelViewMatrix = GLKMatrix4MakeTranslation(0.0, 0.0, 0.0)
-        modelViewMatrix = GLKMatrix4Rotate(modelViewMatrix, rotation, 1.0, 1.0, 1.0)
-        modelViewMatrix = GLKMatrix4Multiply(baseModelViewMatrix, modelViewMatrix)
-        self.effect?.transform.modelviewMatrix = modelViewMatrix
-        */
+        let texture: Texture = Texture(file: "bullet.png")
+        texture.draw(0, y: 0, w: 0.5, h: 0.5, r: 1, g: 1, b: 1, a: 1)
     }
     
     // MARK: -  OpenGL ES 2 shader compilation
@@ -219,10 +122,15 @@ class GameViewController: GLKViewController {
         // Attach fragment shader to program.
         glAttachShader(program, fragShader)
         
-        // Bind attribute locations.
-        // This needs to be done prior to linking.
-        glBindAttribLocation(program, GLuint(GLKVertexAttrib.Position.rawValue), "position")
-        glBindAttribLocation(program, GLuint(GLKVertexAttrib.Normal.rawValue), "normal")
+        // リンクする前に必要。頂点座標, 頂点色, テクスチャ座標を設定するためattribute変数の位置を設定する
+        glBindAttribLocation(program, 0, "position")
+        glBindAttribLocation(program, 1, "color")
+        glBindAttribLocation(program, 2, "coord")
+        
+        // リンクする前に必要。頂点座標, 頂点色, テクスチャ座標の配列を有効にする
+        glEnableVertexAttribArray(0)
+        glEnableVertexAttribArray(1)
+        glEnableVertexAttribArray(2)
         
         // Link program.
         if !self.linkProgram(program) {
@@ -243,11 +151,7 @@ class GameViewController: GLKViewController {
             
             return false
         }
-        
-        // Get uniform locations.
-        uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation(program, "modelViewProjectionMatrix")
-        uniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation(program, "normalMatrix")
-        
+
         // Release vertex and fragment shaders.
         if vertShader != 0 {
             glDetachShader(program, vertShader)
@@ -277,17 +181,6 @@ class GameViewController: GLKViewController {
         glShaderSource(shader, 1, &castSource, nil)
         glCompileShader(shader)
         
-        //#if defined(DEBUG)
-        //        var logLength: GLint = 0
-        //        glGetShaderiv(shader, GLenum(GL_INFO_LOG_LENGTH), &logLength)
-        //        if logLength > 0 {
-        //            var log = UnsafeMutablePointer<GLchar>(malloc(Int(logLength)))
-        //            glGetShaderInfoLog(shader, logLength, &logLength, log)
-        //            NSLog("Shader compile log: \n%s", log)
-        //            free(log)
-        //        }
-        //#endif
-        
         glGetShaderiv(shader, GLenum(GL_COMPILE_STATUS), &status)
         if status == 0 {
             glDeleteShader(shader)
@@ -300,18 +193,7 @@ class GameViewController: GLKViewController {
         NSLog("linkProgram")
         var status: GLint = 0
         glLinkProgram(prog)
-        
-        //#if defined(DEBUG)
-        //        var logLength: GLint = 0
-        //        glGetShaderiv(shader, GLenum(GL_INFO_LOG_LENGTH), &logLength)
-        //        if logLength > 0 {
-        //            var log = UnsafeMutablePointer<GLchar>(malloc(Int(logLength)))
-        //            glGetShaderInfoLog(shader, logLength, &logLength, log)
-        //            NSLog("Shader compile log: \n%s", log)
-        //            free(log)
-        //        }
-        //#endif
-        
+
         glGetProgramiv(prog, GLenum(GL_LINK_STATUS), &status)
         if status == 0 {
             return false
@@ -342,95 +224,4 @@ class GameViewController: GLKViewController {
     }
 }
 
-/*
-var gCubeVertexData: [GLfloat] = [
-    // Data layout for each line below is:
-    // positionX, positionY, positionZ,     normalX, normalY, normalZ,
-    0.5, -0.5, -0.5,        1.0, 0.0, 0.0,
-    0.5, 0.5, -0.5,         1.0, 0.0, 0.0,
-    0.5, -0.5, 0.5,         1.0, 0.0, 0.0,
-    0.5, -0.5, 0.5,         1.0, 0.0, 0.0,
-    0.5, 0.5, -0.5,         1.0, 0.0, 0.0,
-    0.5, 0.5, 0.5,          1.0, 0.0, 0.0,
-    
-    0.5, 0.5, -0.5,         0.0, 1.0, 0.0,
-    -0.5, 0.5, -0.5,        0.0, 1.0, 0.0,
-    0.5, 0.5, 0.5,          0.0, 1.0, 0.0,
-    0.5, 0.5, 0.5,          0.0, 1.0, 0.0,
-    -0.5, 0.5, -0.5,        0.0, 1.0, 0.0,
-    -0.5, 0.5, 0.5,         0.0, 1.0, 0.0,
-    
-    -0.5, 0.5, -0.5,        -1.0, 0.0, 0.0,
-    -0.5, -0.5, -0.5,      -1.0, 0.0, 0.0,
-    -0.5, 0.5, 0.5,         -1.0, 0.0, 0.0,
-    -0.5, 0.5, 0.5,         -1.0, 0.0, 0.0,
-    -0.5, -0.5, -0.5,      -1.0, 0.0, 0.0,
-    -0.5, -0.5, 0.5,        -1.0, 0.0, 0.0,
-    
-    -0.5, -0.5, -0.5,      0.0, -1.0, 0.0,
-    0.5, -0.5, -0.5,        0.0, -1.0, 0.0,
-    -0.5, -0.5, 0.5,        0.0, -1.0, 0.0,
-    -0.5, -0.5, 0.5,        0.0, -1.0, 0.0,
-    0.5, -0.5, -0.5,        0.0, -1.0, 0.0,
-    0.5, -0.5, 0.5,         0.0, -1.0, 0.0,
-    
-    0.5, 0.5, 0.5,          0.0, 0.0, 1.0,
-    -0.5, 0.5, 0.5,         0.0, 0.0, 1.0,
-    0.5, -0.5, 0.5,         0.0, 0.0, 1.0,
-    0.5, -0.5, 0.5,         0.0, 0.0, 1.0,
-    -0.5, 0.5, 0.5,         0.0, 0.0, 1.0,
-    -0.5, -0.5, 0.5,        0.0, 0.0, 1.0,
-    
-    0.5, -0.5, -0.5,        0.0, 0.0, -1.0,
-    -0.5, -0.5, -0.5,      0.0, 0.0, -1.0,
-    0.5, 0.5, -0.5,         0.0, 0.0, -1.0,
-    0.5, 0.5, -0.5,         0.0, 0.0, -1.0,
-    -0.5, -0.5, -0.5,      0.0, 0.0, -1.0,
-    -0.5, 0.5, -0.5,        0.0, 0.0, -1.0
-]
-*/
-
-var gCubeVertexData: [GLfloat] = [
-    0.5, -0.5, -0.5,        1.0, 0.0, 0.0,
-    0.5, 0.5, -0.5,         1.0, 0.0, 0.0,
-    0.5, -0.5, 0.5,         1.0, 0.0, 0.0,
-    0.5, -0.5, 0.5,         1.0, 0.0, 0.0,
-    0.5, 0.5, -0.5,         1.0, 0.0, 0.0,
-    0.5, 0.5, 0.5,          1.0, 0.0, 0.0,
-    
-    0.5, 0.5, -0.5,         0.0, 1.0, 0.0,
-    -0.5, 0.5, -0.5,        0.0, 1.0, 0.0,
-    0.5, 0.5, 0.5,          0.0, 1.0, 0.0,
-    0.5, 0.5, 0.5,          0.0, 1.0, 0.0,
-    -0.5, 0.5, -0.5,        0.0, 1.0, 0.0,
-    -0.5, 0.5, 0.5,         0.0, 1.0, 0.0,
-    
-    -0.5, 0.5, -0.5,        -1.0, 0.0, 0.0,
-    -0.5, -0.5, -0.5,      -1.0, 0.0, 0.0,
-    -0.5, 0.5, 0.5,         -1.0, 0.0, 0.0,
-    -0.5, 0.5, 0.5,         -1.0, 0.0, 0.0,
-    -0.5, -0.5, -0.5,      -1.0, 0.0, 0.0,
-    -0.5, -0.5, 0.5,        -1.0, 0.0, 0.0,
-    
-    -0.5, -0.5, -0.5,      0.0, -1.0, 0.0,
-    0.5, -0.5, -0.5,        0.0, -1.0, 0.0,
-    -0.5, -0.5, 0.5,        0.0, -1.0, 0.0,
-    -0.5, -0.5, 0.5,        0.0, -1.0, 0.0,
-    0.5, -0.5, -0.5,        0.0, -1.0, 0.0,
-    0.5, -0.5, 0.5,         0.0, -1.0, 0.0,
-    
-    0.5, 0.5, 0.5,          0.0, 0.0, 1.0,
-    -0.5, 0.5, 0.5,         0.0, 0.0, 1.0,
-    0.5, -0.5, 0.5,         0.0, 0.0, 1.0,
-    0.5, -0.5, 0.5,         0.0, 0.0, 1.0,
-    -0.5, 0.5, 0.5,         0.0, 0.0, 1.0,
-    -0.5, -0.5, 0.5,        0.0, 0.0, 1.0,
-    
-    0.5, -0.5, -0.5,        0.0, 0.0, -1.0,
-    -0.5, -0.5, -0.5,      0.0, 0.0, -1.0,
-    0.5, 0.5, -0.5,         0.0, 0.0, -1.0,
-    0.5, 0.5, -0.5,         0.0, 0.0, -1.0,
-    -0.5, -0.5, -0.5,      0.0, 0.0, -1.0,
-    -0.5, 0.5, -0.5,        0.0, 0.0, -1.0
-]
 

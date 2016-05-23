@@ -6,23 +6,19 @@
 //  Copyright © 2016年 Yoji Okada. All rights reserved.
 //
 
+
+// バーテックスシェーダへの入力
 attribute vec4 position;
-attribute vec3 normal;
+attribute vec4 color;
+attribute vec2 texCoord;
 
-varying lowp vec4 colorVarying;
+// フラグメントシェーダへの出力
+varying vec4 vColor;
+varying vec2 vTexCoord;
 
-uniform mat4 modelViewProjectionMatrix;
-uniform mat3 normalMatrix;
-
-void main()
-{
-    vec3 eyeNormal = normalize(normalMatrix * normal);
-    vec3 lightPosition = vec3(0.0, 0.0, 1.0);
-    vec4 diffuseColor = vec4(0.0, 0.4, 1.0, 1.0);
-    
-    float nDotVP = max(0.0, dot(eyeNormal, normalize(lightPosition)));
-                 
-    colorVarying = diffuseColor * nDotVP;
-    
-    gl_Position = modelViewProjectionMatrix * position;
+// 入力した頂点座標、頂点色、テクスチャ座標をそのまま出力
+void main() {
+    gl_Position = position;
+    vColor = color;
+    vTexCoord = texCoord;
 }

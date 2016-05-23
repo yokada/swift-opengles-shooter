@@ -6,9 +6,13 @@
 //  Copyright © 2016年 Yoji Okada. All rights reserved.
 //
 
-varying lowp vec4 colorVarying;
+// texture sampler
+uniform sampler2D texture;
 
-void main()
-{
-    gl_FragColor = colorVarying;
+// フラグメントシェーダーへの入力
+varying lowp vec4 vColor;
+varying lowp vec2 vTexCoord;
+
+void main()  {
+    gl_FragColor = vColor*texture2D(texture, vTexCoord);
 }

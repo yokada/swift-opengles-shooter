@@ -8,8 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		C19836D51CF2110300A61E33 /* bullet.png in Resources */ = {isa = PBXBuildFile; fileRef = C19836D41CF2110300A61E33 /* bullet.png */; };
-		C19836D61CF2110300A61E33 /* bullet.png in Resources */ = {isa = PBXBuildFile; fileRef = C19836D41CF2110300A61E33 /* bullet.png */; };
-		C19836D71CF2110300A61E33 /* bullet.png in Resources */ = {isa = PBXBuildFile; fileRef = C19836D41CF2110300A61E33 /* bullet.png */; };
+		C19836DA1CF212A700A61E33 /* Texture.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19836D91CF212A700A61E33 /* Texture.swift */; };
+		C1DA34601CF236440016EDC2 /* Game.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1DA345F1CF236440016EDC2 /* Game.swift */; };
 		C1FD4E021CF0FC80005DB179 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1FD4E011CF0FC80005DB179 /* AppDelegate.swift */; };
 		C1FD4E041CF0FC81005DB179 /* Shader.fsh in Resources */ = {isa = PBXBuildFile; fileRef = C1FD4E031CF0FC81005DB179 /* Shader.fsh */; };
 		C1FD4E061CF0FC81005DB179 /* Shader.vsh in Resources */ = {isa = PBXBuildFile; fileRef = C1FD4E051CF0FC81005DB179 /* Shader.vsh */; };
@@ -39,7 +39,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		C19836D41CF2110300A61E33 /* bullet.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = bullet.png; sourceTree = "<group>"; };
+		C19836D41CF2110300A61E33 /* bullet.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = bullet.png; sourceTree = SOURCE_ROOT; };
+		C19836D91CF212A700A61E33 /* Texture.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Texture.swift; path = shooter1/Texture.swift; sourceTree = SOURCE_ROOT; };
+		C1DA345F1CF236440016EDC2 /* Game.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Game.swift; path = shooter1/Game.swift; sourceTree = SOURCE_ROOT; };
 		C1FD4DFE1CF0FC80005DB179 /* shooter1.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = shooter1.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C1FD4E011CF0FC80005DB179 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C1FD4E031CF0FC81005DB179 /* Shader.fsh */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = Shader.fsh; path = Shaders/Shader.fsh; sourceTree = "<group>"; };
@@ -122,6 +124,8 @@
 				C1FD4E0C1CF0FC81005DB179 /* Assets.xcassets */,
 				C1FD4E0E1CF0FC81005DB179 /* LaunchScreen.storyboard */,
 				C1FD4E111CF0FC81005DB179 /* Info.plist */,
+				C19836D91CF212A700A61E33 /* Texture.swift */,
+				C1DA345F1CF236440016EDC2 /* Game.swift */,
 			);
 			path = shooter1;
 			sourceTree = "<group>";
@@ -261,7 +265,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C19836D61CF2110300A61E33 /* bullet.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -269,7 +272,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C19836D71CF2110300A61E33 /* bullet.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -282,6 +284,8 @@
 			files = (
 				C1FD4E081CF0FC81005DB179 /* GameViewController.swift in Sources */,
 				C1FD4E021CF0FC80005DB179 /* AppDelegate.swift in Sources */,
+				C19836DA1CF212A700A61E33 /* Texture.swift in Sources */,
+				C1DA34601CF236440016EDC2 /* Game.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
